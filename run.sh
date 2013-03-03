@@ -2,4 +2,4 @@
 
 ./setup.bash
 
-java mitm.MITMProxyServer -keyStore ./keystore -keyStorePassword password
+java mitm.MITMProxyServer -keyStore ./keystore -keyStorePassword password -outputFile ./run.log

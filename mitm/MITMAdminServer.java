@@ -84,13 +84,19 @@ class MITMAdminServer implements Runnable
 	// TODO(cs255): instead of greeting admin client, run the indicated command
         String c = cmd.toLowerCase();
         if (c.equals("stats")) {
-	    sendString("Need to implement Stats command!!\n");
+            int requests = 0;
+            File statsFile = new File(JSSEConstants.STATS_COUNT_FILE);
+            Scanner s = new Scanner(statsFile);
+            while (s.hasNextInt()) {
+                requests = s.nextInt();
+            }
+            sendString("Total number of requests proxied: " + requests + "\n");
         } else if (c.equals("shutdown")) {
-            sendString("Shutting down proxy server");
+            sendString("Shutting down proxy server\n");
             System.exit(0);
         } else {
             sendString("Unkown command: " + c);
-            sendString("Expected: stats | shutdown");
+            sendString("Expected: stats | shutdown\n");
         }
 
 	m_socket.close();

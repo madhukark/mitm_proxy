@@ -2,6 +2,10 @@ package mitm;
 
 import java.io.PrintWriter;
 
+import java.io.FileWriter;
+import java.io.File;
+import java.util.Scanner;
+
 /*
  * This class is used to record data that passes back and forth over a TCP
  * connection.  Output goes to a PrintWriter, whose default value is System.out.
@@ -62,6 +66,34 @@ public class ProxyDataFilter {
 	m_out.println("------ "+ connectionDetails.getDescription() +
 		      " ------");
 	m_out.println(stringBuffer);
+
+        try {
+            int requests = 0;
+
+            File statsFile = new File(JSSEConstants.STATS_COUNT_FILE);
+            if (! statsFile.exists()) {
+                statsFile.createNewFile();
+            }
+
+            Scanner s = new Scanner(statsFile);
+            while (s.hasNextInt()) {
+                requests += s.nextInt();
+            }
+            requests ++;
+
+            FileWriter outputStream = null;
+            try {
+                outputStream = new FileWriter(JSSEConstants.STATS_COUNT_FILE);
+                outputStream.write(String.valueOf(requests));
+            } finally {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 	return null;
     }
