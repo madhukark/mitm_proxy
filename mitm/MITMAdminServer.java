@@ -82,8 +82,16 @@ class MITMAdminServer implements Runnable
     private void doCommand( String cmd ) throws IOException {
 
 	// TODO(cs255): instead of greeting admin client, run the indicated command
-
-	sendString("How are you Admin Client !!");
+        String c = cmd.toLowerCase();
+        if (c.equals("stats")) {
+	    sendString("Need to implement Stats command!!\n");
+        } else if (c.equals("shutdown")) {
+            sendString("Shutting down proxy server");
+            System.exit(0);
+        } else {
+            sendString("Unkown command: " + c);
+            sendString("Expected: stats | shutdown");
+        }
 
 	m_socket.close();
 	
