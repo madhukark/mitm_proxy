@@ -54,15 +54,41 @@ class MITMAdminServer implements Runnable
 
 		    // TODO(cs255): authenticate the user
 
-		    boolean authenticated = true;
+                    /*
+                     * The password hash created using BCrypt library
+                     *     String hashed = BCrypt.hashpw("admin", BCrypt.gensalt());
+                     *     System.out.println("admin: " + hashed);
+                    */
+
+                    String hashed = "";
+                    try {
+                        hashed = new Scanner(new File(JSSEConstants.PWD_FILE)).useDelimiter("\\Z").next();
+                    } catch (FileNotFoundException e) {
+                        sendString("Required pwdFile not found\n");
+                        m_socket.close();
+                    }
+                    boolean authenticated = false;
+
+                    try {
+                        if (BCrypt.checkpw(password, hashed)) {
+                            authenticated = true;
+                        } else {
+                            authenticated = false;
+                        }
+                    } 
+                    catch (Exception e) {
+                        sendString("Exception occured. Check logs\n");
+                    }
 
 		    // if authenticated, do the command
 		    if( authenticated ) {
 			String command = userPwdMatcher.group(2);
 			String commonName = userPwdMatcher.group(3);
-
 			doCommand( command );
-		    }
+		    } else {
+                        sendString("Authentication failed!\n");
+                        m_socket.close();
+                    }
 		}	
 	    }
 	    catch( InterruptedIOException e ) {

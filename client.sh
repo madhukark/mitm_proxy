@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java mitm.MITMAdminClient -password password -cmd $1
+java mitm.MITMAdminClient -password admin -cmd $1
