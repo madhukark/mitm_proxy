@@ -3,8 +3,10 @@
 
 package mitm;
 
+import iaik.asn1.ObjectID;
 import iaik.asn1.structures.AlgorithmID;
 import iaik.x509.X509Certificate;
+import iaik.asn1.structures.Name;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -17,6 +19,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStore.PrivateKeyEntry;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -69,34 +72,34 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
     public MITMSSLSocketFactory()
 	throws IOException,GeneralSecurityException
     {
-	m_sslContext = SSLContext.getInstance("SSL");
+	    m_sslContext = SSLContext.getInstance("SSL");
 
-	final KeyManagerFactory keyManagerFactory =
-	    KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+    	final KeyManagerFactory keyManagerFactory =
+    	    KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
-	final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
-	final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
-	final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
+    	final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
+    	final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
+    	final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
 
-	final KeyStore keyStore;
+    	final KeyStore keyStore;
 	
-	if (keyStoreFile != null) {
-	    keyStore = KeyStore.getInstance(keyStoreType);
-	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
+    	if (keyStoreFile != null) {
+    	    keyStore = KeyStore.getInstance(keyStoreType);
+    	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
 
-	    this.ks = keyStore;
-	} else {
-	    keyStore = null;
-	}
+    	    this.ks = keyStore;
+    	} else {
+    	    keyStore = null;
+    	}
 
-	keyManagerFactory.init(keyStore, keyStorePassword);
+    	keyManagerFactory.init(keyStore, keyStorePassword);
 
-	m_sslContext.init(keyManagerFactory.getKeyManagers(),
-			  new TrustManager[] { new TrustEveryone() },
-			  null);
+    	m_sslContext.init(keyManagerFactory.getKeyManagers(),
+    			  new TrustManager[] { new TrustEveryone() },
+    			  null);
 
-	m_clientSocketFactory = m_sslContext.getSocketFactory();
-	m_serverSocketFactory = m_sslContext.getServerSocketFactory(); 
+    	m_clientSocketFactory = m_sslContext.getSocketFactory();
+    	m_serverSocketFactory = m_sslContext.getServerSocketFactory();
     }
 
     /**
@@ -107,60 +110,97 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
     public MITMSSLSocketFactory(Principal serverDN, BigInteger serialNumber)
 	throws IOException,GeneralSecurityException, Exception
     {
-	this();
-        // TODO(cs255): replace this with code to generate a new (forged) server certificate with a DN of serverDN
-        //   and a serial number of serialNumber.
+        m_sslContext = SSLContext.getInstance("SSL");
 
-	// You may find it useful to work from the comment skeleton below.
+        final KeyManagerFactory keyManagerFactory =
+            KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
-        /*
-	final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
-	final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
-	final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
-	// The "alias" is the name of the key pair in our keystore. (default: "mykey")
-	String alias = System.getProperty(JSSEConstants.KEYSTORE_ALIAS_PROPERTY);
+        final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
+        final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
+        final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
 
-	final KeyStore keyStore;
-	
-	if (keyStoreFile != null) {
-	    keyStore = KeyStore.getInstance(keyStoreType);
-	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
-	    
-	    this.ks = keyStore;
-	} else {
-	    keyStore = null;
-	}
+        final KeyStore keyStore;
 
-	// Get our key pair and our own DN (not the remote server's DN) from the keystore.
-	PrivateKey privateKey = // . . .
-	iaik.x509.X509Certificate certificate = new iaik.x509.X509Certificate(keyStore.getCertificate(alias).getEncoded());
-	PublicKey publicKey = // . . .
-	Principal ourDN = // . . .
+        if (keyStoreFile != null) {
+            keyStore = KeyStore.getInstance(keyStoreType);
+            keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
 
-	// . . .
+            PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry)
+            keyStore.getEntry("cs255key", new KeyStore.PasswordProtection(keyStorePassword));
 
-	iaik.x509.X509Certificate serverCertificate = // . . .
+            iaik.x509.X509Certificate X509cert = new iaik.x509.X509Certificate(pkEntry.getCertificate().getEncoded());
 
-	// . . .
+            Name subject = new Name();
+            fillRDN(subject, serverDN.toString());
+            X509cert.setSubjectDN(subject);
 
-	KeyStore serverKeyStore = KeyStore.getInstance(keyStoreType);
+            Name issuer = new Name();
+            fillRDN(issuer, serverDN.toString());
+            X509cert.setIssuerDN(issuer);
 
-	// . . .
-	
-	final KeyManagerFactory keyManagerFactory =
-	    KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-	keyManagerFactory.init(serverKeyStore, emptyPassword);
+            X509cert.setSerialNumber(serialNumber);
+            X509cert.setPublicKey(pkEntry.getCertificate().getPublicKey());
+            X509cert.sign(AlgorithmID.sha1WithRSAEncryption, pkEntry.getPrivateKey());
 
-	m_sslContext = SSLContext.getInstance("SSL");
-	m_sslContext.init(keyManagerFactory.getKeyManagers(),
-			  new TrustManager[] { new TrustEveryone() },
-			  null);
+            Certificate[] originalChain = pkEntry.getCertificateChain();
+            originalChain[0] = X509cert;
+            keyStore.setKeyEntry("cs255key", pkEntry.getPrivateKey(), keyStorePassword, originalChain);
 
-	m_clientSocketFactory = // . . .
-	m_serverSocketFactory = // . . .
+            this.ks = keyStore;
+        } else {
+            keyStore = null;
+        }
 
-	*/
+        keyManagerFactory.init(keyStore, keyStorePassword);
+
+        m_sslContext.init(keyManagerFactory.getKeyManagers(),
+                          new TrustManager[] { new TrustEveryone() },
+                          null);
+
+        m_clientSocketFactory = m_sslContext.getSocketFactory();
+        m_serverSocketFactory = m_sslContext.getServerSocketFactory();
     }
+
+    public void fillRDN(Name subject, String dname) {
+            String[] dnameKeys = {
+                "CN=",
+                "O=",
+                "OU=",
+                "L=",
+                "EMAIL=",
+                "ST=",
+                "C="
+            };
+            ObjectID[] dnameObjectIDs = {
+                ObjectID.commonName,
+                ObjectID.organization,
+                ObjectID.organizationalUnit,
+                ObjectID.locality,
+                ObjectID.emailAddress,
+                ObjectID.stateOrProvince,
+                ObjectID.country
+            };
+
+            dname += ",";
+            int startIndex = 0;
+            int endIndex = 0;
+            int boundingIndex = 0;
+            String dnameKey;
+
+            for (int i = 0; i < dnameKeys.length; i++)
+            {
+                dnameKey = dnameKeys[i];
+                startIndex = dname.indexOf(dnameKey);
+                if (startIndex >= 0) {
+                    boundingIndex = dname.indexOf("=", startIndex + dnameKey.length());
+                    if (boundingIndex == -1) {
+                        boundingIndex = dname.length() - 1;
+                    }
+                    endIndex = dname.lastIndexOf(",", boundingIndex);
+                    subject.addRDN(dnameObjectIDs[i], dname.substring(startIndex + dnameKey.length(), endIndex));
+                }
+            }
+        }
 
     public final ServerSocket createServerSocket(String localHost,
 						 int localPort,

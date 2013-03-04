@@ -121,7 +121,7 @@ class MITMAdminServer implements Runnable
             sendString("Shutting down proxy server\n");
             System.exit(0);
         } else {
-            sendString("Unkown command: " + c);
+            sendString("Unknown command: " + c);
             sendString("Expected: stats | shutdown\n");
         }
 
