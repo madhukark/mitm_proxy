@@ -182,21 +182,16 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
             };
 
             dname += ",";
-            int startIndex = 0;
-            int endIndex = 0;
-            int boundingIndex = 0;
-            String dnameKey;
-
             for (int i = 0; i < dnameKeys.length; i++)
             {
-                dnameKey = dnameKeys[i];
-                startIndex = dname.indexOf(dnameKey);
+                String dnameKey = dnameKeys[i];
+                int startIndex = dname.indexOf(dnameKey);
                 if (startIndex >= 0) {
-                    boundingIndex = dname.indexOf("=", startIndex + dnameKey.length());
+                    int boundingIndex = dname.indexOf("=", startIndex + dnameKey.length());
                     if (boundingIndex == -1) {
                         boundingIndex = dname.length() - 1;
                     }
-                    endIndex = dname.lastIndexOf(",", boundingIndex);
+                    int endIndex = dname.lastIndexOf(",", boundingIndex);
                     subject.addRDN(dnameObjectIDs[i], dname.substring(startIndex + dnameKey.length(), endIndex));
                 }
             }

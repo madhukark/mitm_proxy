@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.Principal;
+import javax.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -142,14 +143,14 @@ public class HTTPSProxyEngine extends ProxyEngine
 
 		    SSLSocket remoteSocket = null;
 		    try {
-			//Lookup the "common name" field of the certificate from the remote server:
-			remoteSocket = (SSLSocket)
+			    //Lookup the "common name" field of the certificate from the remote server:
+    			remoteSocket = (SSLSocket)
 			    m_proxySSLEngine.getSocketFactory().createClientSocket(remoteHost, remotePort);
 		    } catch (IOException ioe) {
-			ioe.printStackTrace();
-			// Try to be nice and send a reasonable error message to client
-			sendClientResponse(localSocket.getOutputStream(),"504 Gateway Timeout",remoteHost,remotePort);
-			continue;
+			    ioe.printStackTrace();
+    			// Try to be nice and send a reasonable error message to client
+    			sendClientResponse(localSocket.getOutputStream(),"504 Gateway Timeout",remoteHost,remotePort);
+    			continue;
 		    }
 
 		    // TODO(cs255): get the remote server's Distinguished Name (DN) and serial number from its actual certificate,
@@ -158,9 +159,15 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    //    to that server.)
 		    javax.security.cert.X509Certificate[] serverCertChain = null;
 		    iaik.x509.X509Certificate serverCertificate = null;
-		    Principal serverDN = null;
-		    BigInteger serverSerialNumber = null;
+            X509Certificate java_cert = null;
+            Principal serverDN = null;
+            BigInteger serverSerialNumber = null;
 
+            if (remoteSocket != null) {
+                java_cert = remoteSocket.getSession().getPeerCertificateChain()[0];
+                serverDN = java_cert.getIssuerDN();
+    		    serverSerialNumber = java_cert.getSerialNumber();                
+            }
 
 		    //We've already opened the socket, so might as well keep using it:
 		    m_proxySSLEngine.setRemoteSocket(remoteSocket);
