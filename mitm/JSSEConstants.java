@@ -14,6 +14,6 @@ public interface JSSEConstants
     public final static String DEFAULT_ALIAS = "mykey";
 
     public final static String STATS_COUNT_FILE = ".statsFile";
-
     public final static String PWD_FILE = "pwdFile";
+    public final static String KEYSTORE_FILE = "keystore";
 }

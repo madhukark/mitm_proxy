@@ -61,13 +61,14 @@ class MITMAdminServer implements Runnable
                     */
 
                     String hashed = "";
+                    boolean authenticated = false;
+
                     try {
                         hashed = new Scanner(new File(JSSEConstants.PWD_FILE)).useDelimiter("\\Z").next();
                     } catch (FileNotFoundException e) {
-                        sendString("Required pwdFile not found\n");
-                        m_socket.close();
+                        sendString("Required password file not found\n");
+                        authenticated = false;
                     }
-                    boolean authenticated = false;
 
                     try {
                         if (BCrypt.checkpw(password, hashed)) {
@@ -77,7 +78,8 @@ class MITMAdminServer implements Runnable
                         }
                     } 
                     catch (Exception e) {
-                        sendString("Exception occured. Check logs\n");
+                        sendString("Passwords dont match\n");
+                        authenticated = false;
                     }
 
 		    // if authenticated, do the command

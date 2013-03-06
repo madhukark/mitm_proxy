@@ -123,7 +123,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 
         if (keyStoreFile != null) {
             keyStore = KeyStore.getInstance(keyStoreType);
-            keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
+            keyStore.load(new FileInputStream(JSSEConstants.KEYSTORE_FILE), "password".toCharArray());
 
             PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry)
             keyStore.getEntry("mykey", new KeyStore.PasswordProtection(keyStorePassword));
@@ -133,10 +133,6 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
             Name subject = new Name();
             fillRDN(subject, serverDN.toString());
             X509cert.setSubjectDN(subject);
-
-            Name issuer = new Name();
-            fillRDN(issuer, "CN=DigiSign Security, O=DigiSign Inc, L=Palo Alto, ST=California, C=US");
-            X509cert.setIssuerDN(issuer);
 
             X509cert.setSerialNumber(serialNumber);
             X509cert.setPublicKey(pkEntry.getCertificate().getPublicKey());
