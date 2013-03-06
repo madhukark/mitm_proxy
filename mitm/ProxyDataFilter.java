@@ -70,17 +70,27 @@ public class ProxyDataFilter {
         try {
             int requests = 0;
 
+            /*
+             * CS255
+             *
+             * Each time a proxy connection is made, increment the stat counter
+             */
+
+            // Create new file if none exists
             File statsFile = new File(JSSEConstants.STATS_COUNT_FILE);
             if (! statsFile.exists()) {
                 statsFile.createNewFile();
             }
 
+            // Read existing count
             Scanner s = new Scanner(statsFile);
             while (s.hasNextInt()) {
                 requests += s.nextInt();
             }
+
             requests ++;
 
+            // Save back
             FileWriter outputStream = null;
             try {
                 outputStream = new FileWriter(JSSEConstants.STATS_COUNT_FILE);

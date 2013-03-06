@@ -52,17 +52,27 @@ class MITMAdminServer implements Runnable
 		if (userPwdMatcher.find()) {
 		    String password = userPwdMatcher.group(1);
 
-		    // TODO(cs255): authenticate the user
+                    /*
+                     * CS255
+                     *
+                     * Need to Authenticate the user here. The user entered password is got
+                     * and needs to be compared with what we have as the right password. The
+                     * salted password hash is stored in the PWD_FILE.
+                     *
+                     * We use BCrypt library to create a salted hash and also for comparison
+                     *
+                     */
 
                     /*
-                     * The password hash created using BCrypt library
+                     * A salted password hash created using BCrypt library
                      *     String hashed = BCrypt.hashpw("admin", BCrypt.gensalt());
                      *     System.out.println("admin: " + hashed);
-                    */
+                     */
 
                     String hashed = "";
                     boolean authenticated = false;
 
+                    // Get the hased password from our file.
                     try {
                         hashed = new Scanner(new File(JSSEConstants.PWD_FILE)).useDelimiter("\\Z").next();
                     } catch (FileNotFoundException e) {
@@ -70,6 +80,7 @@ class MITMAdminServer implements Runnable
                         authenticated = false;
                     }
 
+                    // Check if the user entered password is the right one
                     try {
                         if (BCrypt.checkpw(password, hashed)) {
                             authenticated = true;
@@ -109,9 +120,21 @@ class MITMAdminServer implements Runnable
     
     private void doCommand( String cmd ) throws IOException {
 
-	// TODO(cs255): instead of greeting admin client, run the indicated command
+        /*
+         * CS255
+         *
+         * We support only two actions:
+         *   stats     To display the number of proxy connections made
+         *   shutdown  Shutdown the proxy
+         */
         String c = cmd.toLowerCase();
         if (c.equals("stats")) {
+            //
+            // stats gives the total number of connections made by the proxy. We use a simple
+            // file based counter. Each time a proxy connection is made the count is captured
+            // in the file. When a request is issued to read the stats, we display the info
+            // from the file
+            //
             int requests = 0;
             File statsFile = new File(JSSEConstants.STATS_COUNT_FILE);
             Scanner s = new Scanner(statsFile);
@@ -120,9 +143,11 @@ class MITMAdminServer implements Runnable
             }
             sendString("Total number of requests proxied: " + requests + "\n");
         } else if (c.equals("shutdown")) {
+            // Shutdown is a simple exit for us
             sendString("Shutting down proxy server\n");
             System.exit(0);
         } else {
+            // Be nice
             sendString("Unknown command: " + c);
             sendString("Expected: stats | shutdown\n");
         }

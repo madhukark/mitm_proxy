@@ -88,7 +88,8 @@ public class MITMProxyServer
 		} else if (args[i].equals("-timeout")) {
 		    timeout = Integer.parseInt(args[++i]) * 1000;
 		} else if( args[i].equals("-pwdFile")) {
-			i++; // TODO(cs255): parse this as needed
+                    System.setProperty(JSSEConstants.PWD_FILE,
+                                       args[++i]);
 		} else if (args[i].equals("-adminPort")) {
 			adminPort = Integer.parseInt(args[++i]);
 		} else if (args[i].equals("-outputFile")) {

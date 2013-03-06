@@ -13,7 +13,12 @@ public interface JSSEConstants
 
     public final static String DEFAULT_ALIAS = "mykey";
 
+    // File to collect stats information
     public final static String STATS_COUNT_FILE = ".statsFile";
+
+    // File that has the hashed admin password for proxy client interaction
     public final static String PWD_FILE = "pwdFile";
+
+    // KeyStore file that is used
     public final static String KEYSTORE_FILE = "keystore";
 }

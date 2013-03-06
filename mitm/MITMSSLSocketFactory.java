@@ -23,6 +23,7 @@ import java.security.KeyStore.PrivateKeyEntry;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Key;
 import java.security.cert.Certificate;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -123,7 +124,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 
         if (keyStoreFile != null) {
             keyStore = KeyStore.getInstance(keyStoreType);
-            keyStore.load(new FileInputStream(JSSEConstants.KEYSTORE_FILE), "password".toCharArray());
+    	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
 
             PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry)
             keyStore.getEntry("mykey", new KeyStore.PasswordProtection(keyStorePassword));
@@ -140,12 +141,14 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 
             Certificate[] originalChain = pkEntry.getCertificateChain();
             originalChain[0] = X509cert;
+
             keyStore.setKeyEntry("mykey", pkEntry.getPrivateKey(), keyStorePassword, originalChain);
 
             this.ks = keyStore;
         } else {
             keyStore = null;
         }
+
 
         keyManagerFactory.init(keyStore, keyStorePassword);
 
