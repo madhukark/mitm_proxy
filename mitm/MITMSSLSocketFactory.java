@@ -119,15 +119,20 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
         final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
         final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
         final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
+        String keyAlias = System.getProperty(JSSEConstants.KEYSTORE_ALIAS_PROPERTY);
 
         final KeyStore keyStore;
+
+        if (keyAlias == null || keyAlias.isEmpty()) {
+            keyAlias = JSSEConstants.DEFAULT_ALIAS;
+        }
 
         if (keyStoreFile != null) {
             keyStore = KeyStore.getInstance(keyStoreType);
     	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
 
             PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry)
-            keyStore.getEntry("mykey", new KeyStore.PasswordProtection(keyStorePassword));
+            keyStore.getEntry(keyAlias, new KeyStore.PasswordProtection(keyStorePassword));
 
             iaik.x509.X509Certificate X509cert = new iaik.x509.X509Certificate(pkEntry.getCertificate().getEncoded());
 
@@ -142,7 +147,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
             Certificate[] originalChain = pkEntry.getCertificateChain();
             originalChain[0] = X509cert;
 
-            keyStore.setKeyEntry("mykey", pkEntry.getPrivateKey(), keyStorePassword, originalChain);
+            keyStore.setKeyEntry(keyAlias, pkEntry.getPrivateKey(), keyStorePassword, originalChain);
 
             this.ks = keyStore;
         } else {
