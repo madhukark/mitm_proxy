@@ -159,15 +159,15 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    //    to that server.)
 		    javax.security.cert.X509Certificate[] serverCertChain = null;
 		    iaik.x509.X509Certificate serverCertificate = null;
-            X509Certificate java_cert = null;
-            Principal serverDN = null;
-            BigInteger serverSerialNumber = null;
+                    X509Certificate java_cert = null;
+                    Principal serverDN = null;
+                    BigInteger serverSerialNumber = null;
 
-            if (remoteSocket != null) {
-                java_cert = remoteSocket.getSession().getPeerCertificateChain()[0];
-                serverDN = java_cert.getIssuerDN();
-    		    serverSerialNumber = java_cert.getSerialNumber();                
-            }
+                    if (remoteSocket != null) {
+                        java_cert = remoteSocket.getSession().getPeerCertificateChain()[0];
+                        serverDN = java_cert.getSubjectDN();
+            		    serverSerialNumber = java_cert.getSerialNumber();                
+                    }
 
 		    //We've already opened the socket, so might as well keep using it:
 		    m_proxySSLEngine.setRemoteSocket(remoteSocket);

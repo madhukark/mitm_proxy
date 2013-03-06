@@ -126,7 +126,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
             keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
 
             PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry)
-            keyStore.getEntry("cs255key", new KeyStore.PasswordProtection(keyStorePassword));
+            keyStore.getEntry("mykey", new KeyStore.PasswordProtection(keyStorePassword));
 
             iaik.x509.X509Certificate X509cert = new iaik.x509.X509Certificate(pkEntry.getCertificate().getEncoded());
 
@@ -135,7 +135,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
             X509cert.setSubjectDN(subject);
 
             Name issuer = new Name();
-            fillRDN(issuer, serverDN.toString());
+            fillRDN(issuer, "CN=DigiSign Security, O=DigiSign Inc, L=Palo Alto, ST=California, C=US");
             X509cert.setIssuerDN(issuer);
 
             X509cert.setSerialNumber(serialNumber);
@@ -144,7 +144,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 
             Certificate[] originalChain = pkEntry.getCertificateChain();
             originalChain[0] = X509cert;
-            keyStore.setKeyEntry("cs255key", pkEntry.getPrivateKey(), keyStorePassword, originalChain);
+            keyStore.setKeyEntry("mykey", pkEntry.getPrivateKey(), keyStorePassword, originalChain);
 
             this.ks = keyStore;
         } else {
