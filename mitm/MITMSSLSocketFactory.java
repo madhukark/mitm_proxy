@@ -116,6 +116,13 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
         final KeyManagerFactory keyManagerFactory =
             KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
+        /*
+         * CS255
+         *
+         * Create a new X509 cert using our keystore. Copy over required fields from
+         * the serverDN
+         */
+
         final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
         final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
         final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
@@ -123,6 +130,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 
         final KeyStore keyStore;
 
+        // Fallback to default alias "mykey"
         if (keyAlias == null || keyAlias.isEmpty()) {
             keyAlias = JSSEConstants.DEFAULT_ALIAS;
         }
@@ -134,12 +142,15 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
             PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry)
             keyStore.getEntry(keyAlias, new KeyStore.PasswordProtection(keyStorePassword));
 
+            // New X509 cert sent by proxy
             iaik.x509.X509Certificate X509cert = new iaik.x509.X509Certificate(pkEntry.getCertificate().getEncoded());
 
             Name subject = new Name();
+            // Copy over required fields from serverDN
             fillRDN(subject, serverDN.toString());
             X509cert.setSubjectDN(subject);
 
+            // Copy over server serial number to our proxy cert
             X509cert.setSerialNumber(serialNumber);
             X509cert.setPublicKey(pkEntry.getCertificate().getPublicKey());
             X509cert.sign(AlgorithmID.sha1WithRSAEncryption, pkEntry.getPrivateKey());
@@ -165,6 +176,9 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
         m_serverSocketFactory = m_sslContext.getServerSocketFactory();
     }
 
+    /*
+     * This function copies over the required fields present in dname into subject
+     */
     public void fillRDN(Name subject, String dname) {
             String[] dnameKeys = {
                 "CN=",
