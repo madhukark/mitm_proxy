@@ -135,13 +135,17 @@ class MITMAdminServer implements Runnable
             // in the file. When a request is issued to read the stats, we display the info
             // from the file
             //
-            int requests = 0;
             File statsFile = new File(JSSEConstants.STATS_COUNT_FILE);
-            Scanner s = new Scanner(statsFile);
-            while (s.hasNextInt()) {
-                requests = s.nextInt();
+            if (! statsFile.exists()) {
+                sendString("Total number of requests proxied: 0\n");
+            } else {
+                int requests = 0;
+                Scanner s = new Scanner(statsFile);
+                while (s.hasNextInt()) {
+                    requests = s.nextInt();
+                }
+                sendString("Total number of requests proxied: " + requests + "\n");
             }
-            sendString("Total number of requests proxied: " + requests + "\n");
         } else if (c.equals("shutdown")) {
             // Shutdown is a simple exit for us
             sendString("Shutting down proxy server\n");
